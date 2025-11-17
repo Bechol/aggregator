@@ -1,0 +1,91 @@
+server:
+  port: ${SERVER_PORT:8083}
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+  application:
+    name: aggregator
+  flyway:
+    schemas: ${DATASOURCE_SCHEMA}
+    locations: classpath:db/migration
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
+  datasource:
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://${DATASOURCE_HOST}/lenni?currentSchema=${DATASOURCE_SCHEMA}
+    username: ${DATASOURCE_USER}
+    password: ${DATASOURCE_PASSWORD}
+    hikari:
+      connectionTimeout: 30000
+      idleTimeout: 60000
+      maxLifetime: 7190000
+      minimumIdle: 2
+      maximumPoolSize: 50
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
+    producer:
+      retries: ${PRODUCER_RETRIES_COUNT:3}
+    consumer:
+      group-id: llm-task-group
+
+eureka:
+  instance:
+    preferIpAddress: true
+    lease-renewal-interval-in-seconds: 30
+    status-page-url: ${EUREKA_URL}/apps/${spring.application.name}
+    health-check-url-path: /actuator/health
+  client:
+    enabled: ${EUREKA_CLIENT_ENABLED:false}
+    healthcheck:
+      enabled: true
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: ${EUREKA_URL}
+
+management:
+  zipkin:
+    tracing:
+      endpoint: ${TEMPO_ZIPKIN_URL}
+  tracing:
+    enabled: ${TRACING_ENABLED:false}
+    sampling:
+      probability: ${TRACING_PROBABILITY:0.3} #будут собираться абсолютно все трейсы.., обычно достаточно 0.3, 0.4
+  info:
+    java:
+      enabled: true
+  endpoint:
+    env:
+      access: READ_ONLY
+    refresh:
+      access: READ_ONLY
+    health:
+      show-details: always
+      access: READ_ONLY
+    info:
+      access: READ_ONLY
+  endpoints:
+    access:
+      default: READ_ONLY
+    web:
+      exposure:
+        include: "*"
+
+app:
+  s3:
+    url: ${S3_URL}
+    bucket: ${S3_BUCKET}
+    access-key: ${S3_ACCESS_KEY}
+    secret-key: ${S3_SECRET_KEY}
+  feign:
+    attachment: ${FEIGN_ATTACHMENT_URL}
+  llm:
+    request-topic: llm-request
+    response-topic: llm-response
