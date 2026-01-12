@@ -1,6 +1,6 @@
 package ru.lenni.aggregator.resource.common;
 
-public enum TaskType {
+public enum RequestType {
 
     CHECK, MASKING, UNMASKING
 }

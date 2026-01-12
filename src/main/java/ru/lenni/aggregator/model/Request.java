@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import ru.lenni.aggregator.resource.common.TaskType;
+import ru.lenni.aggregator.resource.common.RequestType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,24 +15,24 @@ import java.util.UUID;
 @Entity
 @Accessors(chain = true)
 @NoArgsConstructor
-@Table(schema = "agr", name = "task")
-public class Task {
+@Table(schema = "agr", name = "request")
+public class Request {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @Column(name = "task_id", nullable = false, unique = true)
+    private UUID id = UUID.randomUUID();
 
     @Column(name = "task_type", nullable = false)
     @Enumerated(EnumType.STRING)
-    private TaskType taskType;
+    private RequestType requestType;
 
-    @Column(name = "file_path", nullable = false)
-    private String filePath;
+    @Column(name = "s3_key", nullable = false)
+    private String s3Key;
 
-    @Column(name = "result_file_path")
-    private String resultFilePath;
+    @Column(name = "result_s3_key")
+    private String resultS3Key;
 
-    @Column(name = "contains_pd", nullable = false)
+    @Column(name = "contains_pd")
     private Boolean containsPD = false;
 
     @CreationTimestamp
@@ -44,19 +44,20 @@ public class Task {
     private LocalDateTime lastUpdateTime;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     private TaskStatus status;
 
-    @Column(name = "deleted", nullable = true)
+    @Column(name = "deleted")
     private Boolean deleted = false;
 
     @Version
     private Long version;
 
-    public static Task withType(TaskType taskType) {
-        Task task = new Task();
-        task.setTaskType(taskType);
-        return task;
+    public static Request withType(RequestType requestType) {
+        Request request = new Request();
+        request.setRequestType(requestType);
+        request.setStatus(TaskStatus.NEW);
+        return request;
     }
 
     public boolean isSoftDeleted() {

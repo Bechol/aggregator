@@ -11,8 +11,7 @@ import java.util.UUID;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class LlmRequest {
 
-    private UUID taskUid;
-    private String taskType;
-    private String status;
-    private String filePath;
+    private UUID requestId;
+    private String requestType;
+    private String s3Key;
 }

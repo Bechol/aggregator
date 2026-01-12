@@ -12,8 +12,8 @@ public class RestExceptionHandler {
         return ResponseEntity.badRequest().body(exception.getMessage());
     }
 
-    @ExceptionHandler(exception = TaskNotProcessedYetException.class)
-    public ResponseEntity<String> handleFileAlreadyExistsException(TaskNotProcessedYetException exception) {
+    @ExceptionHandler(exception = {RequestNotProcessedYetException.class, IllegalExtensionException.class})
+    public ResponseEntity<String> handleExceptionWithBadRequest(RequestNotProcessedYetException exception) {
         return ResponseEntity.badRequest().body(exception.getMessage());
     }
 
@@ -27,8 +27,8 @@ public class RestExceptionHandler {
         return ResponseEntity.notFound().build();
     }
 
-    @ExceptionHandler(exception = TaskNotFoundException.class)
-    public ResponseEntity<String> handleFileNotExistsException(TaskNotFoundException exception) {
+    @ExceptionHandler(exception = RequestNotFoundException.class)
+    public ResponseEntity<String> handleFileNotExistsException(RequestNotFoundException exception) {
         return ResponseEntity.notFound().build();
     }
 }

@@ -6,16 +6,16 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import ru.lenni.aggregator.config.FeignMultipartConfig;
 
-@FeignClient(name = "attachment", url = "${app.feign.attachment}", path = "/file")
+import java.util.UUID;
+
+@FeignClient(name = "attachment", url = "${app.feign.attachment}", path = "/file", configuration = FeignMultipartConfig.class)
 public interface AttachmentClient {
 
-    @GetMapping("/exists")
-    ResponseEntity<Boolean> checkFileExists(@RequestParam("filePath") String filePath);
+    @PostMapping(path = "/upload/lite", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    UUID upload(@RequestPart("file") MultipartFile file);
 
-    @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    ResponseEntity<Void> upload(@RequestParam("filePath") String filePath, @RequestPart("file") MultipartFile file);
-
-    @GetMapping("/download")
-    ResponseEntity<Resource> download(@RequestParam("filePath") String filePath);
+    @GetMapping("/download/result")
+    ResponseEntity<Resource> download(@RequestParam("resultS3Key") String resultS3Key);
 }

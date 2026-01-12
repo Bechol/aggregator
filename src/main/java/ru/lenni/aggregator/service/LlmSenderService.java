@@ -1,10 +1,10 @@
 package ru.lenni.aggregator.service;
 
-import ru.lenni.aggregator.model.Task;
+import ru.lenni.aggregator.model.Request;
 
 public interface LlmSenderService {
 
-    void sendRequestToLlm(Task task);
+    void sendRequestToLlm(Request request);
 
-    void resendErrorTask(Task task);
+    void resendErrorTask(Request request);
 }

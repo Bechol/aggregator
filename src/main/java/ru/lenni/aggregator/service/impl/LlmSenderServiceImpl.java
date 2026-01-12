@@ -9,9 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.lenni.aggregator.config.AppProperties;
 import ru.lenni.aggregator.dto.LlmRequest;
 import ru.lenni.aggregator.exception.LlmSendException;
-import ru.lenni.aggregator.model.Task;
+import ru.lenni.aggregator.model.Request;
 import ru.lenni.aggregator.model.TaskStatus;
-import ru.lenni.aggregator.repository.TaskRepository;
+import ru.lenni.aggregator.repository.RequestRepository;
 import ru.lenni.aggregator.service.LlmSenderService;
 
 import java.util.Objects;
@@ -23,46 +23,45 @@ import java.util.UUID;
 public class LlmSenderServiceImpl implements LlmSenderService {
 
     private final AppProperties props;
-    private final TaskRepository taskRepository;
+    private final RequestRepository requestRepository;
     private final KafkaTemplate<UUID, LlmRequest> llmRequestKafkaTemplate;
 
     @Override
     @Transactional
-    public void sendRequestToLlm(Task task) {
-        var record = createKafkaMessage(task);
+    public void sendRequestToLlm(Request request) {
+        var record = createKafkaMessage(request);
         llmRequestKafkaTemplate.send(record)
                 .whenCompleteAsync((result, exception) -> {
-                    if (Objects.isNull(exception) && !TaskStatus.CANCELLED.equals(task.getStatus())) {
-                        taskRepository.save(task.setStatus(TaskStatus.IN_PROGRESS));
+                    if (Objects.isNull(exception) && !TaskStatus.CANCELLED.equals(request.getStatus())) {
+                        requestRepository.save(request.setStatus(TaskStatus.IN_PROGRESS));
                     }
                 })
                 .exceptionallyAsync(throwable -> {
-                    taskRepository.save(task.setStatus(TaskStatus.SEND_ERROR));
-                    throw new LlmSendException(task.getId(), throwable);
+                    requestRepository.save(request.setStatus(TaskStatus.SEND_ERROR));
+                    throw new LlmSendException(request.getId(), throwable);
                 });
     }
 
     @Override
     @Transactional
-    public void resendErrorTask(Task task) {
-        var record = createKafkaMessage(task);
+    public void resendErrorTask(Request request) {
+        var record = createKafkaMessage(request);
         llmRequestKafkaTemplate.send(record).whenCompleteAsync((result, exception) -> {
             if (Objects.isNull(exception)) {
-                taskRepository.save(task.setStatus(TaskStatus.IN_PROGRESS));
+                requestRepository.save(request.setStatus(TaskStatus.IN_PROGRESS));
             }
         });
     }
 
-    private ProducerRecord<UUID, LlmRequest> createKafkaMessage(Task task) {
-        LlmRequest request = new LlmRequest()
-                .setTaskUid(task.getId())
-                .setTaskType(task.getTaskType().name())
-                .setStatus(task.getStatus().name())
-                .setFilePath(task.getFilePath());
+    private ProducerRecord<UUID, LlmRequest> createKafkaMessage(Request request) {
+        LlmRequest messageData = new LlmRequest()
+                .setRequestId(request.getId())
+                .setRequestType(request.getRequestType().name())
+                .setS3Key(request.getS3Key());
         return new ProducerRecord<>(
                 props.getLlm().getRequestTopic(),
-                task.getId(),
-                request
+                messageData.getRequestId(),
+                messageData
         );
     }
 

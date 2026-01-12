@@ -24,39 +24,46 @@ repositories {
 }
 
 ext {
-	set('springBootAdminVersion', "3.5.0")
-	set('springCloudVersion', "2025.0.0")
+	springBootAdminVersion = "3.5.0"
+	springCloudVersion = "2025.0.0"
+	dockerImageName = "bechol/lenni-aggregator"
+	dockerHubUsername = "bechol"
 }
 
 dependencies {
+
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.11.0'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.flywaydb:flyway-core'
-	implementation 'org.flywaydb:flyway-database-postgresql'
 	implementation 'org.springframework.kafka:spring-kafka'
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-//	implementation 'org.apache.httpcomponents:httpclient:4.5.14'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
-
-	// == Logging, tracing and monitoring ==
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
-	runtimeOnly 'io.micrometer:micrometer-core'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-database-postgresql'
+	implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.11.0'
 	implementation 'io.micrometer:micrometer-tracing'
 	implementation 'io.micrometer:micrometer-tracing-bridge-otel'
 	implementation 'io.opentelemetry:opentelemetry-exporter-zipkin'
+	implementation 'io.github.openfeign.form:feign-form:3.8.0'
+	implementation 'io.github.openfeign.form:feign-form-spring:3.8.0'
 	implementation 'com.github.loki4j:loki-logback-appender:2.0.1'
 	implementation 'net.ttddyy.observation:datasource-micrometer-spring-boot:1.2.0' //для трейсинга запросов в базу
-	// ==
+	implementation('commons-io:commons-io:2.14.0')
 
-	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+	runtimeOnly 'io.micrometer:micrometer-core'
 	runtimeOnly 'org.postgresql:postgresql'
 	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
+	compileOnly 'org.projectlombok:lombok'
+
 	annotationProcessor 'org.projectlombok:lombok'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
+	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation 'org.testcontainers:postgresql'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
@@ -69,4 +76,97 @@ dependencyManagement {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+//gradle clean dockerBuildLatest -x test
+tasks.register('dockerBuildLatest', Exec) {
+	dependsOn build
+	group = 'docker'
+	description = 'Build Docker image'
+
+	doFirst {
+		println "Building Docker image: ${dockerImageName}:latest"
+	}
+
+	commandLine 'docker', 'build',
+			'--build-arg', "JAR_FILE=${bootJar.archiveFileName.get()}",
+			'-t', "${dockerImageName}:latest",
+			'.'
+}
+
+// Задача для сборки Docker образа
+tasks.register('dockerBuild', Exec) {
+	dependsOn build
+	group = 'docker'
+	description = 'Build Docker image'
+
+	doFirst {
+		println "Building Docker image: ${dockerImageName}:${version}"
+	}
+
+	commandLine 'docker', 'build',
+			'--build-arg', "JAR_FILE=${bootJar.archiveFileName.get()}",
+			'-t', "${dockerImageName}:${version}",
+			'-t', "${dockerImageName}:latest",
+			'.'
+}
+
+// Задача для логина в Docker Hub
+tasks.register('dockerLogin', Exec) {
+	group = 'docker'
+	description = 'Login to Docker Hub'
+
+	doFirst {
+		def username = System.getenv('DOCKER_USERNAME')
+		def password = System.getenv('DOCKER_PASSWORD')
+
+		if (!username || !password) {
+			throw new GradleException('Set DOCKER_USERNAME and DOCKER_PASSWORD environment variables')
+		}
+	}
+
+	commandLine 'docker', 'login', '-u', System.getenv('DOCKER_USERNAME'), '-p', System.getenv('DOCKER_PASSWORD')
+}
+
+// Задача для отправки конкретной версии
+tasks.register('dockerPushVersion', Exec) {
+	dependsOn dockerBuild, dockerLogin
+	group = 'docker'
+	description = 'Push Docker image version to registry'
+
+	doFirst {
+		println "Pushing: ${dockerImageName}:${version}"
+	}
+
+	commandLine 'docker', 'push', "${dockerImageName}:${version}"
+}
+
+// Задача для отправки latest
+tasks.register('dockerPushLatest', Exec) {
+	dependsOn dockerPushVersion
+	group = 'docker'
+	description = 'Push Docker image latest tag to registry'
+
+	doFirst {
+		println "Pushing: ${dockerImageName}:latest"
+	}
+
+	commandLine 'docker', 'push', "${dockerImageName}:latest"
+}
+
+// Главная задача для публикации
+tasks.register('dockerPush') {
+	dependsOn dockerPushLatest
+	group = 'docker'
+	description = 'Build and push Docker image to registry'
+}
+
+// Задача для очистки локальных образов
+tasks.register('dockerClean', Exec) {
+	group = 'docker'
+	description = 'Remove Docker images'
+
+	commandLine 'docker', 'rmi',
+			"${dockerImageName}:${version}",
+			"${dockerImageName}:latest"
 }

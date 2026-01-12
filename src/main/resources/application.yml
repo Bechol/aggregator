@@ -32,6 +32,8 @@ spring:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
     producer:
       retries: ${PRODUCER_RETRIES_COUNT:3}
+      properties:
+        spring.json.add.type.headers: false #убирает TypeId хэдер из сообщения
     consumer:
       group-id: llm-task-group
 
@@ -79,11 +81,6 @@ management:
         include: "*"
 
 app:
-  s3:
-    url: ${S3_URL}
-    bucket: ${S3_BUCKET}
-    access-key: ${S3_ACCESS_KEY}
-    secret-key: ${S3_SECRET_KEY}
   feign:
     attachment: ${FEIGN_ATTACHMENT_URL}
   llm:
