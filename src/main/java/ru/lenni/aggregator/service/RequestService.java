@@ -2,9 +2,9 @@ package ru.lenni.aggregator.service;
 
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
-import ru.lenni.aggregator.dto.LlmResponse;
+import ru.lenni.aggregator.dto.LlmResponseDto;
 import ru.lenni.aggregator.dto.RequestMetadata;
-import ru.lenni.aggregator.resource.common.RequestType;
+import ru.lenni.aggregator.dto.RequestType;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,7 +24,7 @@ public interface RequestService {
 
     void resend(UUID requestUid);
 
-    void processLlmResult(LlmResponse response);
+    void processLlmResult(LlmResponseDto response);
 
     Resource getResult(UUID requestId);
 }

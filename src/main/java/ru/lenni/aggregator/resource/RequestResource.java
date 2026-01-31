@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.lenni.aggregator.dto.RequestMetadata;
-import ru.lenni.aggregator.resource.common.RequestType;
+import ru.lenni.aggregator.dto.RequestType;
 
 import java.io.IOException;
 import java.util.UUID;

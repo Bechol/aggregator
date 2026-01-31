@@ -1,4 +1,4 @@
-package ru.lenni.aggregator.resource.common;
+package ru.lenni.aggregator.dto;
 
 public enum RequestType {
 

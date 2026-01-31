@@ -1,6 +1,6 @@
-package ru.lenni.aggregator.model;
+package ru.lenni.aggregator.dto;
 
-public enum TaskStatus {
+public enum RequestStatus {
 
     NEW, IN_PROGRESS, ERROR, CANCELLED, SEND_ERROR, DONE
 }
