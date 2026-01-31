@@ -6,7 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import ru.lenni.aggregator.resource.common.RequestType;
+import ru.lenni.aggregator.dto.RequestStatus;
+import ru.lenni.aggregator.dto.RequestType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -19,12 +20,12 @@ import java.util.UUID;
 public class Request {
 
     @Id
-    @Column(name = "task_id", nullable = false, unique = true)
+    @Column(name = "id", nullable = false, unique = true)
     private UUID id = UUID.randomUUID();
 
-    @Column(name = "task_type", nullable = false)
+    @Column(name = "type", nullable = false)
     @Enumerated(EnumType.STRING)
-    private RequestType requestType;
+    private RequestType type;
 
     @Column(name = "s3_key", nullable = false)
     private String s3Key;
@@ -45,7 +46,7 @@ public class Request {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private TaskStatus status;
+    private RequestStatus status;
 
     @Column(name = "deleted")
     private Boolean deleted = false;
@@ -55,8 +56,8 @@ public class Request {
 
     public static Request withType(RequestType requestType) {
         Request request = new Request();
-        request.setRequestType(requestType);
-        request.setStatus(TaskStatus.NEW);
+        request.setType(requestType);
+        request.setStatus(RequestStatus.NEW);
         return request;
     }
 

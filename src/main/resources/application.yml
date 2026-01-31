@@ -35,7 +35,7 @@ spring:
       properties:
         spring.json.add.type.headers: false #убирает TypeId хэдер из сообщения
     consumer:
-      group-id: llm-task-group
+      group-id: llm-request-group
 
 eureka:
   instance:

@@ -17,5 +17,5 @@ public interface AttachmentClient {
     UUID upload(@RequestPart("file") MultipartFile file);
 
     @GetMapping("/download/result")
-    ResponseEntity<Resource> download(@RequestParam("resultS3Key") String resultS3Key);
+    Resource download(@RequestParam("fileS3Key") String fileS3Key);
 }

@@ -20,6 +20,7 @@ configurations {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
 }
 
@@ -49,8 +50,7 @@ dependencies {
 	implementation 'io.github.openfeign.form:feign-form-spring:3.8.0'
 	implementation 'com.github.loki4j:loki-logback-appender:2.0.1'
 	implementation 'net.ttddyy.observation:datasource-micrometer-spring-boot:1.2.0' //для трейсинга запросов в базу
-	implementation('commons-io:commons-io:2.14.0')
-
+	implementation 'commons-io:commons-io:2.14.0'
 	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 	runtimeOnly 'io.micrometer:micrometer-core'
 	runtimeOnly 'org.postgresql:postgresql'
